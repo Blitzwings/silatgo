@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Evaluasi Silat</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+	<style>
+		/* ================================================================== Variabel Warna & Tema ========== */
+		:root {
+		  --primary: #00b894;
+		  --secondary: #0984e3;
+		  --danger: #d63031;
+		  --card-bg: rgba(255, 255, 255, 0.15);
+		  --glass-blur: blur(7px);
+		  --border-color: rgba(255, 255, 255, 0.3);
+		}
+
+		/* ================================================================== Reset & Struktur Dasar ========== */
+		* {
+		  box-sizing: border-box;
+		}
+
+		html {
+		  height: 100%;
+		}
+
+		body {
+		  margin: 0;
+		  padding: 40px;
+		  min-height: 100vh;
+		  font-family: 'Poppins', sans-serif;
+		  background: url('statik.png');
+		  background-size: cover;
+		  display: flex;
+		  justify-content: center;
+		  align-items: flex-start;
+		  flex-wrap: wrap;
+		  gap: 20px;
+		  animation: fadeSlideIn 0.8s ease-out;
+		  overflow: auto;
+		}
+
+		/* ================================================================================== Animasi ========== */
+		@keyframes fadeIn {
+		  from { opacity: 0; transform: translateY(20px); }
+		  to { opacity: 1; transform: translateY(0); }
+		}
+
+		/* ============================================================================ Komponen Utama ========== */
+		.container,
+		.summary-box,
+		.grafik-box {
+		  opacity: 0;
+		  transform: translateY(20px);
+		  animation: fadeIn 2s ease forwards;
+		  
+		  backdrop-filter: var(--glass-blur);
+		  -webkit-backdrop-filter: var(--glass-blur);
+		  background-color: var(--card-bg);
+		  border: 1px solid var(--border-color);
+		  border-radius: 13px;
+		  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
+		  padding: 25px;
+		  color: white;
+		  transition: all 0.3s ease;
+		}
+
+		.container {
+		  max-width: 480px;
+		  width: 100%;
+		}
+
+		.summary-box,
+		.grafik-box {
+		  max-width: 360px;
+		  width: 100%;
+		  font-size: 14px;
+		}
+
+		/* =========================================================================== Teks dan Heading ========== */
+		h1,
+		h2 {
+		  text-align: center;
+		  margin-bottom: 20px;
+		}
+
+		/* ====================================================================================== Input ========== */
+		input[type='text'],
+		input[type='number'] {
+		  width: 100%;
+		  padding: 12px;
+		  border: 1px solid var(--border-color);
+		  border-radius: 16px;
+		  background: rgba(255, 255, 255, 0.1);
+		  color: #fff;
+		  margin-bottom: 15px;
+		  outline: none;
+		  backdrop-filter: var(--glass-blur);
+		  transition: 0.3s;
+		}
+
+		input::placeholder {
+		  color: #eee;
+		}
+
+		input:focus {
+		  border-color: var(--primary);
+		  background: rgba(255, 255, 255, 0.2);
+		}
+
+		/* ====================================================================================== Timer ========== */
+		.timer {
+		  font-size: 48px;
+		  font-weight: 600;
+		  text-align: center;
+		  color: white;
+		  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+		  margin: 20px 0;
+		}
+
+		/* ==================================================================================== Kontrol ========== */
+		.controls {
+		  text-align: center;
+		}
+
+		button {
+		  background: linear-gradient(135deg, var(--primary), var(--secondary));
+		  color: white;
+		  border: none;
+		  border-radius: 50px;
+		  padding: 12px 24px;
+		  margin: 5px;
+		  font-weight: bold;
+		  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+		  transition: all 0.3s ease;
+		}
+
+		button:hover {
+		  transform: scale(1.05);
+		  background: linear-gradient(135deg, var(--secondary), var(--primary));
+		}
+
+		/* ========================================================================== Log dan Statistik ========== */
+		.log {
+		  background: rgba(255, 255, 255, 0.15);
+		  border: 1px solid var(--border-color);
+		  border-radius: 16px;
+		  padding: 12px;
+		  max-height: 140px;
+		  overflow-y: auto;
+		  font-size: 14px;
+		  color: #f8f8f8;
+		}
+
+		.stats {
+		  text-align: center;
+		  margin-bottom: 15px;
+		}
+
+		.stats span {
+		  font-weight: bold;
+		  color: var(--primary);
+		}
+
+		/* ================================================================================= Rekap Ronde ========== */
+		.round-summary {
+		  background-color: #fdfdfd;
+		  border-radius: 8px;
+		  padding: 6px 10px;
+		  margin-bottom: 6px;
+		  border: 1px solid #ddd;
+		  font-size: 12px;
+		  line-height: 1.4;
+		  display: flex;
+		  flex-direction: column;
+		  gap: 2px;
+		}
+
+		.round-summary h3 {
+		  font-size: 13px;
+		  margin: 0;
+		  font-weight: 600;
+		  color: #333;
+		}
+
+		/* ============================================================================ Audio dan Canvas ========== */
+		audio {
+		  display: none;
+		}
+
+		canvas {
+		  background: rgba(255, 255, 255, 0.05);
+		  border-radius: 16px;
+		  padding: 10px;
+		}
+
+		/* ============================================================================ Scrollbar Modern ========== */
+		.container::-webkit-scrollbar,
+		.summary-box::-webkit-scrollbar,
+		.grafik-box::-webkit-scrollbar {
+		  width: 6px;
+		}
+
+		.container::-webkit-scrollbar-thumb,
+		.summary-box::-webkit-scrollbar-thumb,
+		.grafik-box::-webkit-scrollbar-thumb {
+		  background-color: #ccc;
+		  border-radius: 3px;
+		}
+
+		/* =================================================================================== Responsif ========== */
+		@media (max-width: 768px) {
+		  body {
+			flex-direction: column;
+			align-items: center;
+			padding: 20px;
+		  }
+
+		  .container,
+		  .summary-box,
+		  .grafik-box {
+			max-width: 100%;
+			width: 100%;
+			padding: 16px;
+		  }
+
+		  .timer {
+			font-size: 36px;
+		  }
+
+		  .log,
+		  .round-summary {
+			font-size: 13px;
+		  }
+
+		  input[type='text'],
+		  input[type='number'],
+		  button {
+			font-size: 14px;
+			padding: 10px;
+		  }
+		}
+
+		@media (max-width: 480px) {
+		  .timer {
+			font-size: 30px;
+		  }
+
+		  .log,
+		  .round-summary {
+			font-size: 12px;
+		  }
+
+		  button {
+			padding: 8px 14px;
+			font-size: 13px;
+		  }
+
+		  input[type='text'],
+		  input[type='number'] {
+			font-size: 13px;
+		  }
+		}
+	</style>
+</head>
+<body>
+<audio id="whistleSound" src="peluit.mp3" preload="auto"></audio>
+
+<div class="container">
+  <h1>Evaluasi Silat</h1>
+  <input type="text" id="namaAtlet" placeholder="Masukkan Nama Atlet" />
+  <div class="timer" id="timer">00:05</div>
+  <div class="controls">
+    <button onclick="startStopTimer()">Start / Stop</button>
+    <button onclick="resetAll()" style="background: var(--danger)">Reset</button>
+    <br><br>
+    <input type="number" id="setTime" value="5" min="1" onchange="ubahWaktu()" />
+  </div>
+  <div class="stats">
+    <p>Pukulan: <span id="pukulan">0</span> | Tendangan: <span id="tendangan">0</span> | Bantingan: <span id="bantingan">0</span></p>
+  </div>
+  <div class="log" id="log"></div>
+</div>
+
+<div class="summary-box">
+  <h2>Rekap 10 Putaran</h2>
+  <div id="rekap"></div>
+</div>
+<div class="grafik-box">
+  <h2>Grafik Perkembangan</h2>
+  <canvas id="grafikPerkembangan" width="300" height="400" style="margin-top: 20px;"></canvas>
+</div>
+
+<script>
+let timerElement = document.getElementById("timer");
+let logElement = document.getElementById("log");
+let rekapElement = document.getElementById("rekap");
+let pukulan = 0, tendangan = 0, bantingan = 0;
+let duration = parseInt(document.getElementById("setTime").value);
+let remaining = duration;
+let timer = null;
+let isRunning = false;
+let allowInput = false;
+let putaran = 1;
+let hasilRekap = [];
+
+function formatTime(sec) {
+  return "00:" + (sec < 10 ? "0" + sec : sec);
+}
+
+function updateTimerDisplay() {
+  timerElement.textContent = formatTime(remaining);
+}
+
+function playWhistle() {
+  const audio = document.getElementById("whistleSound");
+  audio.pause();
+  audio.currentTime = 0;
+  audio.play().catch(e => console.warn("Audio error:", e));
+}
+
+function startStopTimer() {
+  if (!isRunning) {
+    isRunning = true;
+    allowInput = true;
+    playWhistle();
+    timer = setInterval(() => {
+      remaining--;
+      updateTimerDisplay();
+      if (remaining <= 0) {
+        clearInterval(timer);
+        isRunning = false;
+        allowInput = false;
+        playWhistle();
+        simpanRekap();
+        remaining = duration;
+        updateTimerDisplay();
+      }
+    }, 1000);
+  } else {
+    clearInterval(timer);
+    isRunning = false;
+    allowInput = false;
+  }
+}
+
+function ubahWaktu() {
+  let inputWaktu = parseInt(document.getElementById("setTime").value);
+  duration = inputWaktu;
+  if (!isRunning) {
+    remaining = duration;
+    updateTimerDisplay();
+  }
+}
+
+function resetStats() {
+  pukulan = 0; tendangan = 0; bantingan = 0;
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById("pukulan").textContent = pukulan;
+  document.getElementById("tendangan").textContent = tendangan;
+  document.getElementById("bantingan").textContent = bantingan;
+}
+
+function logPoint(tipe, nilai) {
+  const nama = document.getElementById("namaAtlet").value || "Tanpa Nama";
+  const waktu = formatTime(duration - remaining);
+  const entry = document.createElement("div");
+  entry.innerHTML = `<strong>${nama}</strong> - ${tipe} (+${nilai}) pada ${waktu}`;
+  logElement.appendChild(entry);
+  logElement.scrollTop = logElement.scrollHeight;
+}
+
+function simpanRekap() {
+  if (putaran > 10) return;
+  let total = pukulan * 1 + tendangan * 2 + bantingan * 3;
+  hasilRekap.push({
+    putaran,
+    total,
+    pukulan,
+    tendangan,
+    bantingan,
+    durasi: duration
+  });
+  tampilkanRekap();
+  putaran++;
+  resetStats();
+  logElement.innerHTML = "";
+}
+
+let chart = null;
+
+function tampilkanRekap() {
+  rekapElement.innerHTML = hasilRekap.map(r => `
+    <div class="round-summary">
+      <h3>Putaran ${r.putaran} - Total: ${r.total}</h3>
+      <div>P:${r.pukulan}, T:${r.tendangan}, B:${r.bantingan} • ${r.durasi} detik</div>
+    </div>
+  `).join('');
+  tampilkanGrafik();
+}
+
+function tampilkanGrafik() {
+  const labels = hasilRekap.map(r => "Putaran " + r.putaran);
+  const dataPoin = hasilRekap.map(r => r.total);
+
+  if (!chart) {
+   chart = new Chart(document.getElementById('grafikPerkembangan'), {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Total Poin',
+      data: dataPoin,
+      backgroundColor: 'rgba(255, 193, 7, 0.7)',
+      borderRadius: 8
+    }]
+  },
+  options: {
+    indexAxis: 'y', // << GRAFIK HORIZONTAL
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { beginAtZero: true, ticks: { precision: 0 } },
+      y: { reverse: false } // agar Putaran 1 di atas, dan lanjut ke bawah
+    }
+  }
+});
+  } else {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = dataPoin;
+    chart.update();
+  }
+}
+
+function resetAll() {
+  clearInterval(timer);
+  isRunning = false;
+  allowInput = false;
+  remaining = duration;
+  updateTimerDisplay();
+  resetStats();
+  logElement.innerHTML = "";
+  hasilRekap = [];
+  putaran = 1;
+  rekapElement.innerHTML = "";
+  if (chart) {
+    chart.destroy();
+    chart = null;
+  }
+}
+
+document.addEventListener("keydown", function(e) {
+  if (e.code === "Space") {
+    e.preventDefault(); // agar tidak scroll halaman
+    startStopTimer();   // jalankan fungsi tombol Start/Stop
+    return;
+  }
+
+  if (!allowInput) return;
+
+  if (e.key === "ArrowLeft") {
+    pukulan++; updateStats(); logPoint("Pukulan", 1);
+  } else if (e.key === "ArrowRight") {
+    tendangan++; updateStats(); logPoint("Tendangan", 2);
+  } else if (e.key === "ArrowUp") {
+    bantingan++; updateStats(); logPoint("Bantingan", 3);
+  }
+});
+
+updateTimerDisplay();
+</script>
+</body>
+</html>
